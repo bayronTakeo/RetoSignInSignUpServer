@@ -5,10 +5,20 @@
  */
 package model;
 
+import DataTransferObjects.Model;
+
 /**
  *
  * @author Bayron
  */
 public class DaoFactory {
-    
+
+    private static Model model;
+
+    public static Model getModel() {
+        if (model == null) {
+            model = new Dao();
+        }
+        return model;
+    }
 }
