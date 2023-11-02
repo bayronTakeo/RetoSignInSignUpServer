@@ -5,10 +5,27 @@
  */
 package model;
 
+import DataTransferObjects.Model;
+import DataTransferObjects.User;
+import exceptions.ConnectionErrorException;
+import exceptions.MaxConnectionException;
+import exceptions.TimeOutException;
+import exceptions.UserExistException;
+
 /**
  *
  * @author Bayron
  */
-public class Dao {
+public class Dao implements Model {
+
+    @Override
+    public User doSignIn(User user) throws ConnectionErrorException, TimeOutException, MaxConnectionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSignUp(User user) throws UserExistException, ConnectionErrorException, TimeOutException, MaxConnectionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }
