@@ -5,10 +5,16 @@
  */
 package controller;
 
+import java.net.Socket;
+
 /**
  *
  * @author Bayron
  */
 public class Worker extends Thread {
+
+    public Worker(Socket scktClient, boolean b) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
   
 }
