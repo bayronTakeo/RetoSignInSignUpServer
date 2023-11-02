@@ -9,6 +9,6 @@ package controller;
  *
  * @author Bayron
  */
-public class Worker {
-    
+public class Worker extends Thread {
+  
 }
