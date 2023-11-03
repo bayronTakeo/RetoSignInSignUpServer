@@ -40,7 +40,7 @@ public class Dao implements Model {
     final String SELECTEMAIL = "SELECT login FROM res_users WHERE login = ? GROUP BY login;";
     final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ? GROUP ;";
 
-    private static final Logger LOGGER = Logger.getLogger("DAO.class");
+    private static final Logger LOGGER = Logger.getLogger("Dao.class");
 
     @Override
     public User doSignIn(User user) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException {
