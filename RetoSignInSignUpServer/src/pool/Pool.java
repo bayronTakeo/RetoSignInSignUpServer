@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class Pool {
 
-    private final ResourceBundle bundle = ResourceBundle.getBundle("config.properties");
+    private final ResourceBundle bundle = ResourceBundle.getBundle("pool.config");
     private final String url = bundle.getString("URL");
     private final String user = bundle.getString("USER");
     private final String password = bundle.getString("PASS");
@@ -42,22 +42,24 @@ public class Pool {
         }
         return connection;
     }
-    
-    public boolean releaseConnection(Connection connection){
+
+    public boolean releaseConnection(Connection connection) {
         boolean work = false;
         releasedConnections.push(connection);
-        if(!releasedConnections.isEmpty()) { 
+        if (!releasedConnections.isEmpty()) {
             work = true;
         }
-        return work ;
+        return work;
     }
-    public Connection createConnection() {
+
+    public Connection createConnection() throws ConnectionErrorException {
         try {
-            connection = DriverManager.getConnection(url, user, password);
+            Connection connection = DriverManager.getConnection(url, user, password);
+            return connection;
         } catch (SQLException ex) {
             LOGGER.info(ex.getMessage());
+            throw new ConnectionErrorException("Connection error with the database. Try again later");
         }
-        return connection;
     }
 
     public static boolean closeAllConnections() {
