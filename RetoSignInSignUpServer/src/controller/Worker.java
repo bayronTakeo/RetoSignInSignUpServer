@@ -58,13 +58,7 @@ public class Worker extends Thread {
             ObjectInputStream ois = new ObjectInputStream(skt.getInputStream());
             Model model = DaoFactory.getModel();
             pack = (Package) ois.readObject();
-            if (pack.getMessage().equals(MessageEnum.RE_SIGNIN)) {
-                user = model.doSignIn(pack.getUser());
-                pack.setUser(user);
-            } else if (pack.getMessage().equals(MessageEnum.RE_SIGNUP)) {
-                model.doSignUp(pack.getUser());
-            }
-            pack.setMessage(MessageEnum.AN_OK);
+            pack = processMessage(pack);
         } catch (IOException | ClassNotFoundException | TimeOutException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
         } catch (InvalidUserException ex) {
@@ -92,4 +86,20 @@ public class Worker extends Thread {
         }
     }
 
+    public Package processMessage(Package pack) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException, UserExistException {
+
+        Model model = DaoFactory.getModel();
+        User user;
+
+        if (pack.getMessage().equals(MessageEnum.RE_SIGNIN)) {
+            user = model.doSignIn(pack.getUser());
+            pack.setUser(user);
+        } else if (pack.getMessage().equals(MessageEnum.RE_SIGNUP)) {
+            model.doSignUp(pack.getUser());
+        }
+
+        pack.setMessage(MessageEnum.AN_OK);
+
+        return pack; // Devolver el objeto Package después de procesarlo
+    }
 }
