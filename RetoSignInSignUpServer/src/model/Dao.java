@@ -51,11 +51,11 @@ public class Dao implements Model {
             stmt.setString(2, user.getPassword());
             ResultSet rs = stmt.executeQuery();
             User use = null;
-            if (!rs.next()) { 
+            if (!rs.next()) {
                 throw new InvalidUserException("Some data is wrong...");
             }
             use.setEmail(rs.getString("login"));
-            
+
             return use;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
