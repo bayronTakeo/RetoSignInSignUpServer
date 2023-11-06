@@ -35,7 +35,7 @@ public class App {
             serverClose = new ServerCloseThread(scktServer);
             serverClose.start();
             while (true) {
-                  LOGGER.info("Prueba");
+               
                 scktClient = scktServer.accept();
                 if (connections < MAX_CONNECTIONS) {
                     worker = new Worker(scktClient, false);

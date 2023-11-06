@@ -38,7 +38,7 @@ public class Dao implements Model {
     final String SELECTRESPARTNERID = "SELECT MAX(id) AS id FROM res_partner;";
     final String SELECUSERID = "SELECT MAX(id) AS id FROM res_users;";
     final String SELECTEMAIL = "SELECT login FROM res_users WHERE login = ? GROUP BY login;";
-    final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ? GROUP ;";
+    final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ?";
 
     private static final Logger LOGGER = Logger.getLogger("Dao.class");
 
@@ -50,12 +50,12 @@ public class Dao implements Model {
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
             ResultSet rs = stmt.executeQuery();
+
             User use = null;
             if (!rs.next()) {
                 throw new InvalidUserException("Some data is wrong...");
             }
             use.setEmail(rs.getString("login"));
-
             return use;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
@@ -73,36 +73,48 @@ public class Dao implements Model {
 
             stmt = con.prepareStatement(SELECTEMAIL);
             stmt.setString(1, user.getEmail());
-
-            if (stmt.executeUpdate() == 1) {
-                throw new UserExistException("User already exist!");
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                LOGGER.info("Entra al if");
+                throw new UserExistException();
             }
-            stmt = con.prepareStatement(INSERTRESUSER);
-            stmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPassword());
-            stmt.setString(6, user.getEmail());
-            stmt.executeUpdate();
+
             stmt = con.prepareStatement(INSERTRESPARTNER);
-
-            stmt.setDate(0, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setString(1, user.getName());
-            stmt.setString(4, user.getDirection());
-            stmt.setInt(5, user.getPhoneNumber());
+            stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
+            stmt.setString(2, user.getName());
+            stmt.setString(3, user.getDirection());
+            stmt.setInt(4, user.getPhoneNumber());
             stmt.executeUpdate();
 
+            stmt = con.prepareStatement(SELECTRESPARTNERID);
+
+            ResultSet rs2 = stmt.executeQuery();
+
+            if (rs2.next()) {
+                stmt = con.prepareStatement(INSERTRESUSER);
+                stmt.setInt(1, rs2.getInt("id"));
+                stmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                stmt.setString(3, user.getEmail());
+                stmt.setString(4, user.getPassword());
+                stmt.setDate(5, java.sql.Date.valueOf(LocalDate.now()));
+                stmt.executeUpdate();
+            }
             stmt = con.prepareStatement(INSERTRESCOMP);
             stmt.setInt(1, getId());
 
             stmt = con.prepareStatement(INSERTRESGROUP);
+            stmt.setInt(1, getId());
+            stmt.setInt(2, getId());
+            stmt.setInt(3, getId());
+            stmt.setInt(4, getId());
             stmt.execute();
 
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-            throw new UserExistException();
+            throw new ConnectionErrorException("Connection error with the database. Try again later.");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-            throw new ConnectionErrorException("Connection error with the database. Try again later.");
+            throw new UserExistException();
         } finally {
             closeConnection();
         }
@@ -128,7 +140,9 @@ public class Dao implements Model {
             stmt = con.prepareStatement(SELECUSERID);
 
             ResultSet rs = stmt.executeQuery();
-            id = rs.getInt("id");
+            if (rs.next()) {
+                id = rs.getInt("id");
+            }
         } catch (ConnectionErrorException ex) {
             Logger.getLogger(Dao.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
