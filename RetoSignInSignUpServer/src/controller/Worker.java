@@ -36,8 +36,8 @@ public class Worker extends Thread {
     private static final Logger LOGGER = Logger.getLogger("Worker.class");
 
     /**
-     * @param skt Socket to get the streams.
-     * @param exc Boolean to handle the MaxConnectionExceededException.
+     * @param skt Socket para obtener las transmisiones.
+     * @param exc Booleano para manejar MaxConnectionException.
      */
     public Worker(Socket skt, Boolean exc) {
         this.skt = skt;
@@ -46,7 +46,7 @@ public class Worker extends Thread {
     }
 
     /**
-     * This method manages the requests and answers through streams.
+     * Este método gestiona las solicitudes y respuestas a través de flujos.
      */
     @Override
     public void run() {
@@ -86,6 +86,17 @@ public class Worker extends Thread {
         }
     }
 
+    /**
+     * Este método ejecuta un metodo u otro del modelo.
+     *
+     * @param pack devuelve un pack con el usuario y la respuesta.
+     * @return
+     * @throws exceptions.InvalidUserException
+     * @throws exceptions.ConnectionErrorException
+     * @throws exceptions.TimeOutException
+     * @throws exceptions.MaxConnectionException
+     * @throws exceptions.UserExistException
+     */
     public Package processMessage(Package pack) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException, UserExistException {
 
         Model model = DaoFactory.getModel();

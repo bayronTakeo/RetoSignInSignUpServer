@@ -16,21 +16,21 @@ import pool.Pool;
  *
  * @author Bayron
  */
-public class ServerCloseThread extends Thread{
+public class ServerCloseThread extends Thread {
 
     private final ServerSocket serverSocket;
     private static final Logger LOGGER = Logger.getLogger("ServerCloseThread.class");
 
     /**
-     * @param serverSocket Server socket that has to be closed.
+     * @param serverSocket Server socket a ser cerrado.
      */
     public ServerCloseThread(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
 
     /**
-     * This method keeps in a loop waiting for "kill" to be entered to shut down
-     * te server.
+     * Este metodo se mantiene en un bucle hasta que se escribe la palabra kill,
+     * que mata el servidor.
      */
     @Override
     public void run() {

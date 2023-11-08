@@ -22,6 +22,8 @@ import java.util.logging.Logger;
 import pool.Pool;
 
 /**
+ * Esta clase es la implementación del modelo que realiza las acciones con la
+ * base de datos.
  *
  * @author Bayron
  */
@@ -42,6 +44,17 @@ public class Dao implements Model {
 
     private static final Logger LOGGER = Logger.getLogger("Dao.class");
 
+    /**
+     * Método para hacer el inicio de sesión de un cliente
+     *
+     * @param user el usuario que debe comprobarse si existe
+     * @return el usuario si encuentra uno
+     * @throws InvalidUserException el usuario especificado no existe
+     * @throws ConnectionErrorException se produjo un error de conexión al
+     * intentar para conectarse a la base de datos
+     * @throws TimeOutException no puede conectarse a la base de datos
+     * @throws MaxConnectionException el número máximo de conexión fue superado
+     */
     @Override
     public User doSignIn(User user) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException {
         try {
@@ -65,6 +78,16 @@ public class Dao implements Model {
         }
     }
 
+    /**
+     * Metodo para registrar un nuevo usuario.
+     *
+     * @param user el usuario que debe ser guardado en la base de datos.
+     * @throws UserExistException el usuario ya existe en la base de datos.
+     * @throws ConnectionErrorException ha habido algun error al conectar a la
+     * base de datos.
+     * @throws TimeOutException can't connect to the DB
+     * @throws MaxConnectionException el maximo de conexiones ha sido superado
+     */
     @Override
     public void doSignUp(User user) throws UserExistException, ConnectionErrorException, TimeOutException, MaxConnectionException {
 
@@ -98,19 +121,19 @@ public class Dao implements Model {
                 stmt.setDate(5, java.sql.Date.valueOf(LocalDate.now()));
                 stmt.executeUpdate();
             }
-             int id = getId();
-         
+            int id = getId();
+
             stmt = con.prepareStatement(INSERTRESCOMP);
-            stmt.setInt(1,id);
+            stmt.setInt(1, id);
             stmt.executeUpdate();
-           
+
             stmt = con.prepareStatement(INSERTRESGROUP);
             stmt.setInt(1, id);
             stmt.setInt(2, id);
             stmt.setInt(3, id);
             stmt.setInt(4, id);
             stmt.executeUpdate();
-           
+
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
             throw new ConnectionErrorException("Connection error with the database. Try again later.");
@@ -122,6 +145,10 @@ public class Dao implements Model {
         }
     }
 
+    /**
+     * This method closes the preparedStatement and releases the connection if
+     * they are not null.
+     */
     private void closeConnection() {
         try {
             if (stmt != null) {
@@ -135,6 +162,10 @@ public class Dao implements Model {
         }
     }
 
+    /**
+     * Este metodo recoge el ultimo id de la base de datos para las dos ultimas
+     * consultas.
+     */
     public int getId() {
         int id = 0;
         try {
