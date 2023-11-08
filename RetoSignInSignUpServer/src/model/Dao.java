@@ -33,8 +33,8 @@ public class Dao implements Model {
 
     final String INSERTRESPARTNER = "INSERT INTO res_partner(create_date, name, create_uid, write_uid, street, phone, active) VALUES(?,?,2,2,?,?,'true');";
     final String INSERTRESUSER = "INSERT INTO res_users(company_id, partner_id, create_date, login, password, create_uid, write_date, notification_type) VALUES(1,?,?,?,?,2,?,'email');";
-    final String INSERTRESCOMP = "INSERT INTO res_company_user_rel (cid, user_id) VALUES (1,?);";
-    final String INSERTRESGROUP = "INSERT INTO res_groups_users_rel {gid, uid} VALUES (16,?),(26,?),(28,?),(31,?);";
+    final String INSERTRESCOMP = "INSERT INTO res_company_users_rel (cid, user_id) VALUES (1,?);";
+    final String INSERTRESGROUP = "INSERT INTO res_groups_users_rel (gid, uid) VALUES (16,?),(26,?),(28,?),(31,?);";
     final String SELECTRESPARTNERID = "SELECT MAX(id) AS id FROM res_partner;";
     final String SELECUSERID = "SELECT MAX(id) AS id FROM res_users;";
     final String SELECTEMAIL = "SELECT login FROM res_users WHERE login = ? GROUP BY login;";
@@ -75,7 +75,6 @@ public class Dao implements Model {
             stmt.setString(1, user.getEmail());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                LOGGER.info("Entra al if");
                 throw new UserExistException();
             }
 
@@ -99,16 +98,19 @@ public class Dao implements Model {
                 stmt.setDate(5, java.sql.Date.valueOf(LocalDate.now()));
                 stmt.executeUpdate();
             }
+             int id = getId();
+         
             stmt = con.prepareStatement(INSERTRESCOMP);
-            stmt.setInt(1, getId());
-
+            stmt.setInt(1,id);
+            stmt.executeUpdate();
+           
             stmt = con.prepareStatement(INSERTRESGROUP);
-            stmt.setInt(1, getId());
-            stmt.setInt(2, getId());
-            stmt.setInt(3, getId());
-            stmt.setInt(4, getId());
-            stmt.execute();
-
+            stmt.setInt(1, id);
+            stmt.setInt(2, id);
+            stmt.setInt(3, id);
+            stmt.setInt(4, id);
+            stmt.executeUpdate();
+           
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
             throw new ConnectionErrorException("Connection error with the database. Try again later.");
@@ -143,6 +145,7 @@ public class Dao implements Model {
             if (rs.next()) {
                 id = rs.getInt("id");
             }
+            LOGGER.info("Valor" + String.valueOf(id));
         } catch (ConnectionErrorException ex) {
             Logger.getLogger(Dao.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
