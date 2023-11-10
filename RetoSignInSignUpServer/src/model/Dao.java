@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import pool.Pool;
+import pool.PoolFactory;
 
 /**
  * Esta clase es la implementación del modelo que realiza las acciones con la
@@ -30,9 +31,9 @@ import pool.Pool;
 public class Dao implements Model {
 
     private Connection con;
-    Pool pool = new Pool();
-    private PreparedStatement stmt;
 
+    private PreparedStatement stmt;
+    private static Pool pool;
     final String INSERTRESPARTNER = "INSERT INTO res_partner(create_date, name, create_uid, write_uid, street, phone, active) VALUES(?,?,2,2,?,?,'true');";
     final String INSERTRESUSER = "INSERT INTO res_users(company_id, partner_id, create_date, login, password, create_uid, write_date, notification_type) VALUES(1,?,?,?,?,2,?,'email');";
     final String INSERTRESCOMP = "INSERT INTO res_company_users_rel (cid, user_id) VALUES (1,?);";
@@ -43,6 +44,15 @@ public class Dao implements Model {
     final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ?";
 
     private static final Logger LOGGER = Logger.getLogger("Dao.class");
+
+    /**
+     *
+     * @throws ConnectionErrorException
+     */
+    public void getConnection() throws ConnectionErrorException {
+        pool = PoolFactory.getPool();
+        con = pool.getConnection();
+    }
 
     /**
      * Método para hacer el inicio de sesión de un cliente
@@ -58,7 +68,7 @@ public class Dao implements Model {
     @Override
     public User doSignIn(User user) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException {
         try {
-            con = pool.getConnection();
+            getConnection();
             stmt = con.prepareStatement(LOGIN);
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
@@ -92,10 +102,10 @@ public class Dao implements Model {
     public void doSignUp(User user) throws UserExistException, ConnectionErrorException, TimeOutException, MaxConnectionException {
 
         try {
-            con = pool.getConnection();
+            getConnection();
 
             con.setAutoCommit(false);
-            
+
             stmt = con.prepareStatement(SELECTEMAIL);
             stmt.setString(1, user.getEmail());
             ResultSet rs = stmt.executeQuery();
@@ -135,11 +145,11 @@ public class Dao implements Model {
             stmt.setInt(3, id);
             stmt.setInt(4, id);
             stmt.executeUpdate();
-            
-             con.commit();
+
+            con.commit();
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-             try {
+            try {
                 // En caso de error, hacer un rollback para deshacer los cambios
                 if (con != null) {
                     con.rollback();
