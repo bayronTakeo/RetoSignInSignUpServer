@@ -32,16 +32,13 @@ public class Worker extends Thread {
     private Package pack;
     private final Socket skt;
     private User user;
-    private final Boolean exc;
     private static final Logger LOGGER = Logger.getLogger("Worker.class");
 
     /**
      * @param skt Socket para obtener las transmisiones.
-     * @param exc Booleano para manejar MaxConnectionException.
      */
-    public Worker(Socket skt, Boolean exc) {
+    public Worker(Socket skt) {
         this.skt = skt;
-        this.exc = exc;
         pack = new Package();
     }
 
@@ -52,9 +49,6 @@ public class Worker extends Thread {
     public void run() {
         try {
             App.addConnection();
-            if (exc) {
-                throw new MaxConnectionException();
-            }
             ObjectInputStream ois = new ObjectInputStream(skt.getInputStream());
             Model model = DaoFactory.getModel();
             pack = (Package) ois.readObject();
