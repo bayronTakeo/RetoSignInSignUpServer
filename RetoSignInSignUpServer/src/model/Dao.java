@@ -94,6 +94,8 @@ public class Dao implements Model {
         try {
             con = pool.getConnection();
 
+            con.setAutoCommit(false);
+            
             stmt = con.prepareStatement(SELECTEMAIL);
             stmt.setString(1, user.getEmail());
             ResultSet rs = stmt.executeQuery();
@@ -133,9 +135,18 @@ public class Dao implements Model {
             stmt.setInt(3, id);
             stmt.setInt(4, id);
             stmt.executeUpdate();
-
+            
+             con.commit();
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
+             try {
+                // En caso de error, hacer un rollback para deshacer los cambios
+                if (con != null) {
+                    con.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.log(Level.SEVERE, e1.getMessage());
+            }
             throw new ConnectionErrorException("Connection error with the database. Try again later.");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
