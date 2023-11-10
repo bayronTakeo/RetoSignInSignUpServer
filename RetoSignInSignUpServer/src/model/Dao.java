@@ -22,6 +22,8 @@ import java.util.logging.Logger;
 import pool.Pool;
 
 /**
+ * Esta clase es la implementación del modelo que realiza las acciones con la
+ * base de datos.
  *
  * @author Bayron
  */
@@ -33,15 +35,26 @@ public class Dao implements Model {
 
     final String INSERTRESPARTNER = "INSERT INTO res_partner(create_date, name, create_uid, write_uid, street, phone, active) VALUES(?,?,2,2,?,?,'true');";
     final String INSERTRESUSER = "INSERT INTO res_users(company_id, partner_id, create_date, login, password, create_uid, write_date, notification_type) VALUES(1,?,?,?,?,2,?,'email');";
-    final String INSERTRESCOMP = "INSERT INTO res_company_user_rel (cid, user_id) VALUES (1,?);";
-    final String INSERTRESGROUP = "INSERT INTO res_groups_users_rel {gid, uid} VALUES (16,?),(26,?),(28,?),(31,?);";
+    final String INSERTRESCOMP = "INSERT INTO res_company_users_rel (cid, user_id) VALUES (1,?);";
+    final String INSERTRESGROUP = "INSERT INTO res_groups_users_rel (gid, uid) VALUES (16,?),(26,?),(28,?),(31,?);";
     final String SELECTRESPARTNERID = "SELECT MAX(id) AS id FROM res_partner;";
     final String SELECUSERID = "SELECT MAX(id) AS id FROM res_users;";
     final String SELECTEMAIL = "SELECT login FROM res_users WHERE login = ? GROUP BY login;";
-    final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ? GROUP ;";
+    final String LOGIN = "SELECT * FROM res_users WHERE login = ? and password = ?";
 
     private static final Logger LOGGER = Logger.getLogger("Dao.class");
 
+    /**
+     * Método para hacer el inicio de sesión de un cliente
+     *
+     * @param user el usuario que debe comprobarse si existe
+     * @return el usuario si encuentra uno
+     * @throws InvalidUserException el usuario especificado no existe
+     * @throws ConnectionErrorException se produjo un error de conexión al
+     * intentar para conectarse a la base de datos
+     * @throws TimeOutException no puede conectarse a la base de datos
+     * @throws MaxConnectionException el número máximo de conexión fue superado
+     */
     @Override
     public User doSignIn(User user) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException {
         try {
@@ -50,12 +63,12 @@ public class Dao implements Model {
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
             ResultSet rs = stmt.executeQuery();
+
             User use = null;
             if (!rs.next()) {
                 throw new InvalidUserException("Some data is wrong...");
             }
             use.setEmail(rs.getString("login"));
-
             return use;
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
@@ -65,49 +78,88 @@ public class Dao implements Model {
         }
     }
 
+    /**
+     * Metodo para registrar un nuevo usuario.
+     *
+     * @param user el usuario que debe ser guardado en la base de datos.
+     * @throws UserExistException el usuario ya existe en la base de datos.
+     * @throws ConnectionErrorException ha habido algun error al conectar a la
+     * base de datos.
+     * @throws TimeOutException can't connect to the DB
+     * @throws MaxConnectionException el maximo de conexiones ha sido superado
+     */
     @Override
     public void doSignUp(User user) throws UserExistException, ConnectionErrorException, TimeOutException, MaxConnectionException {
 
         try {
             con = pool.getConnection();
 
+            con.setAutoCommit(false);
+            
             stmt = con.prepareStatement(SELECTEMAIL);
             stmt.setString(1, user.getEmail());
-
-            if (stmt.executeUpdate() == 1) {
-                throw new UserExistException("User already exist!");
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                throw new UserExistException();
             }
-            stmt = con.prepareStatement(INSERTRESUSER);
-            stmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPassword());
-            stmt.setString(6, user.getEmail());
-            stmt.executeUpdate();
-            stmt = con.prepareStatement(INSERTRESPARTNER);
 
-            stmt.setDate(0, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setString(1, user.getName());
-            stmt.setString(4, user.getDirection());
-            stmt.setInt(5, user.getPhoneNumber());
+            stmt = con.prepareStatement(INSERTRESPARTNER);
+            stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
+            stmt.setString(2, user.getName());
+            stmt.setString(3, user.getDirection());
+            stmt.setInt(4, user.getPhoneNumber());
             stmt.executeUpdate();
+
+            stmt = con.prepareStatement(SELECTRESPARTNERID);
+
+            ResultSet rs2 = stmt.executeQuery();
+
+            if (rs2.next()) {
+                stmt = con.prepareStatement(INSERTRESUSER);
+                stmt.setInt(1, rs2.getInt("id"));
+                stmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                stmt.setString(3, user.getEmail());
+                stmt.setString(4, user.getPassword());
+                stmt.setDate(5, java.sql.Date.valueOf(LocalDate.now()));
+                stmt.executeUpdate();
+            }
+            int id = getId();
 
             stmt = con.prepareStatement(INSERTRESCOMP);
-            stmt.setInt(1, getId());
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
 
             stmt = con.prepareStatement(INSERTRESGROUP);
-            stmt.execute();
-
+            stmt.setInt(1, id);
+            stmt.setInt(2, id);
+            stmt.setInt(3, id);
+            stmt.setInt(4, id);
+            stmt.executeUpdate();
+            
+             con.commit();
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-            throw new UserExistException();
+             try {
+                // En caso de error, hacer un rollback para deshacer los cambios
+                if (con != null) {
+                    con.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.log(Level.SEVERE, e1.getMessage());
+            }
+            throw new ConnectionErrorException("Connection error with the database. Try again later.");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-            throw new ConnectionErrorException("Connection error with the database. Try again later.");
+            throw new UserExistException();
         } finally {
             closeConnection();
         }
     }
 
+    /**
+     * This method closes the preparedStatement and releases the connection if
+     * they are not null.
+     */
     private void closeConnection() {
         try {
             if (stmt != null) {
@@ -121,6 +173,10 @@ public class Dao implements Model {
         }
     }
 
+    /**
+     * Este metodo recoge el ultimo id de la base de datos para las dos ultimas
+     * consultas.
+     */
     public int getId() {
         int id = 0;
         try {
@@ -128,7 +184,10 @@ public class Dao implements Model {
             stmt = con.prepareStatement(SELECUSERID);
 
             ResultSet rs = stmt.executeQuery();
-            id = rs.getInt("id");
+            if (rs.next()) {
+                id = rs.getInt("id");
+            }
+            LOGGER.info("Valor" + String.valueOf(id));
         } catch (ConnectionErrorException ex) {
             Logger.getLogger(Dao.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {

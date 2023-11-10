@@ -8,6 +8,7 @@ package model;
 import DataTransferObjects.Model;
 
 /**
+ * La factoria del modelo.
  *
  * @author Bayron
  */

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Esta clase gestiona las conexiones con la base de datos.
  *
  * @author Bayron
  */
@@ -30,6 +31,14 @@ public class Pool {
     Connection connection = null;
     private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger("Pool.class");
 
+    /**
+     * Este método devuelve una conexión con la base de datos. Si no quedan
+     * conexiones libres y no se ha alcanzado el máximo crea una nueva.
+     *
+     * @return la conexión con la base de datos.
+     * @throws ConnectionErrorException Esta excepción se produce si las
+     * solicitudes de la base de datos exceden.
+     */
     public synchronized Connection getConnection() throws ConnectionErrorException {
         if ((usedConnections.size() + releasedConnections.size()) > maxConnections) {
             throw new ConnectionErrorException("Maximum number of requests reached. Try it again later.");
@@ -43,6 +52,12 @@ public class Pool {
         return connection;
     }
 
+    /**
+     * Este método libera una conexión.
+     *
+     * @param connection la conexión que se debe liberar.
+     * @return un booleano que comprueba si el método salió bien.
+     */
     public boolean releaseConnection(Connection connection) {
         boolean work = false;
         releasedConnections.push(connection);
@@ -52,6 +67,12 @@ public class Pool {
         return work;
     }
 
+    /**
+     * Este metodo crea una nueva conexion
+     *
+     * @return la nueva conexion
+     * @throws exceptions.ConnectionErrorException
+     */
     public Connection createConnection() throws ConnectionErrorException {
         try {
             Connection connection = DriverManager.getConnection(url, user, password);
@@ -62,6 +83,11 @@ public class Pool {
         }
     }
 
+    /**
+     * Este metodo cierra todas las conexiones.
+     *
+     * @return the new connection.
+     */
     public static boolean closeAllConnections() {
         boolean closeConnectionOrNot = false;
         for (int i = 0; i < releasedConnections.size(); i++) {

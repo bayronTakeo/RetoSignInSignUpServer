@@ -5,9 +5,11 @@
  */
 package main;
 
+import DataTransferObjects.MessageEnum;
 import controller.ServerCloseThread;
 import controller.Worker;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ResourceBundle;
@@ -15,10 +17,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * La clase principal de la aplicación que gestiona la conexión con los
+ * clientes.
  *
  * @author Bayron
  */
 public class App {
+
     private ServerSocket scktServer;
     private Socket scktClient;
     Worker worker;
@@ -27,25 +32,38 @@ public class App {
     private final Integer MAX_CONNECTIONS = Integer.parseInt(bundle.getString("MAX_CONNECTIONS"));
     private static Integer connections = 0;
     private static final Logger LOGGER = Logger.getLogger("Application");
-    
-    
+    private DataTransferObjects.Package pack;
+
+    /**
+     * . Inicia un servidor y maneja las conexiones entrantes.
+     *
+     */
     public App() {
         try {
             scktServer = new ServerSocket(Integer.parseInt(bundle.getString("PORT")));
             serverClose = new ServerCloseThread(scktServer);
             serverClose.start();
             while (true) {
-                  LOGGER.info("Prueba");
+
                 scktClient = scktServer.accept();
                 if (connections < MAX_CONNECTIONS) {
-                    worker = new Worker(scktClient, false);
+                    worker = new Worker(scktClient);
+                    worker.start();
                 } else {
-                    worker = new Worker(scktClient, true);
+                    try {
+                        ObjectOutputStream oos = new ObjectOutputStream(scktClient.getOutputStream());
+                        pack.setMessage(MessageEnum.AN_MAXCONNECTION);
+                        oos.writeObject(pack);
+                        oos.close();
+                        scktClient.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-                worker.start();
+
             }
         } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE,ex.getMessage());
+            LOGGER.log(Level.SEVERE, ex.getMessage());
         }
     }
 
