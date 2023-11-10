@@ -47,7 +47,7 @@ public class Dao implements Model {
 
     /**
      *
-     * @throws ConnectionErrorException
+     * @throws ConnectionErrorException Excepcion lanzada hacia arriba
      */
     public void getConnection() throws ConnectionErrorException {
         pool = PoolFactory.getPool();
@@ -91,12 +91,11 @@ public class Dao implements Model {
     /**
      * Metodo para registrar un nuevo usuario.
      *
-     * @param user el usuario que debe ser guardado en la base de datos.
-     * @throws UserExistException el usuario ya existe en la base de datos.
-     * @throws ConnectionErrorException ha habido algun error al conectar a la
-     * base de datos.
-     * @throws TimeOutException can't connect to the DB
-     * @throws MaxConnectionException el maximo de conexiones ha sido superado
+     * @param user el usuario que recibe
+     * @throws UserExistException execepcion lanzada hacia arriba
+     * @throws ConnectionErrorException xecepcion lanzada hacia arriba
+     * @throws TimeOutException execepcion lanzada hacia arriba
+     * @throws MaxConnectionException execepcion lanzada hacia arriba
      */
     @Override
     public void doSignUp(User user) throws UserExistException, ConnectionErrorException, TimeOutException, MaxConnectionException {
@@ -104,8 +103,7 @@ public class Dao implements Model {
         try {
             getConnection();
 
-            con.setAutoCommit(false);
-
+            //con.setAutoCommit(false);
             stmt = con.prepareStatement(SELECTEMAIL);
             stmt.setString(1, user.getEmail());
             ResultSet rs = stmt.executeQuery();
@@ -146,17 +144,17 @@ public class Dao implements Model {
             stmt.setInt(4, id);
             stmt.executeUpdate();
 
-            con.commit();
+            //con.commit();
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
-            try {
-                // En caso de error, hacer un rollback para deshacer los cambios
-                if (con != null) {
-                    con.rollback();
-                }
-            } catch (SQLException e1) {
-                LOGGER.log(Level.SEVERE, e1.getMessage());
-            }
+            // try {
+            // En caso de error, hacer un rollback para deshacer los cambios
+            //   if (con != null) {
+            //     con.rollback();
+            //}
+            // } catch (SQLException e1) {
+            //   LOGGER.log(Level.SEVERE, e1.getMessage());
+            //}
             throw new ConnectionErrorException("Connection error with the database. Try again later.");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage());
@@ -167,8 +165,7 @@ public class Dao implements Model {
     }
 
     /**
-     * This method closes the preparedStatement and releases the connection if
-     * they are not null.
+     * Este metodo cierra la conexion y la libera si no es null.
      */
     private void closeConnection() {
         try {
@@ -186,6 +183,8 @@ public class Dao implements Model {
     /**
      * Este metodo recoge el ultimo id de la base de datos para las dos ultimas
      * consultas.
+     *
+     * @return devuelve un id
      */
     public int getId() {
         int id = 0;
