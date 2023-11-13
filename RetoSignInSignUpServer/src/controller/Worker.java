@@ -83,13 +83,13 @@ public class Worker extends Thread {
     /**
      * Este método ejecuta un metodo u otro del modelo.
      *
-     * @param pack devuelve un pack con el usuario y la respuesta.
-     * @return
-     * @throws exceptions.InvalidUserException
-     * @throws exceptions.ConnectionErrorException
-     * @throws exceptions.TimeOutException
-     * @throws exceptions.MaxConnectionException
-     * @throws exceptions.UserExistException
+     * @param pack Paquete con toda la info
+     * @return devuelve un paquete con la informacion
+     * @throws InvalidUserException execepcion lanzada hacia arriba
+     * @throws ConnectionErrorException execepcion lanzada hacia arriba
+     * @throws TimeOutException execepcion lanzada hacia arriba
+     * @throws MaxConnectionException execepcion lanzada hacia arriba
+     * @throws UserExistException execepcion lanzada hacia arriba
      */
     public Package processMessage(Package pack) throws InvalidUserException, ConnectionErrorException, TimeOutException, MaxConnectionException, UserExistException {
 

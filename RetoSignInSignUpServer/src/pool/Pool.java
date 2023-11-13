@@ -70,8 +70,8 @@ public class Pool {
     /**
      * Este metodo crea una nueva conexion
      *
-     * @return la nueva conexion
-     * @throws exceptions.ConnectionErrorException
+     * @return devuelve una conexion
+     * @throws ConnectionErrorException excepcion lanzada hacia arriba
      */
     public Connection createConnection() throws ConnectionErrorException {
         try {
